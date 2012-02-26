@@ -127,7 +127,7 @@ class bitari_Router #
 		return true;
 	}
 
-	public function add( $pattern, $handler, $extra = NULL )
+	public function connect( $pattern, $handler, $extra = NULL )
 	{
 		$r = $this->parse( $pattern, $regex, $names );
 		if ( $r !== true ) {
