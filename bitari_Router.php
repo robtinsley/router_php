@@ -231,7 +231,7 @@ class bitari_Router #
 
 		$uri2 = preg_replace( '<//+>', '/', "/$uri/" );
 		if ( $uri2 !== $uri ) {
-			$handler = $this->route( $method, $uri2, $args );
+			$handler = $this->route( "$method $uri2", $args );
 			if ( $handler !== false ) {
 				$canonical = $uri2;
 				return $handler;
@@ -240,7 +240,7 @@ class bitari_Router #
 
 		$uri3 = substr( $uri2, 0, -1 );
 		if ( $uri3 !== '' ) {
-			$handler = $this->route( $method, $uri3, $args );
+			$handler = $this->route( "$method $uri3", $args );
 			if ( $handler !== false ) {
 				$canonical = $uri3;
 				return $handler;
