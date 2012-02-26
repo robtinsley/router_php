@@ -21,8 +21,8 @@ class bitari_Router #
 
 	function __contruct( $arg = NULL, $options = array() )
 	{
-		if ( is_integer( $arg ) && $arg >= 0 ) {
-			$this->order = $arg;
+		if ( $arg === NULL ) {
+			/* do nothing */
 		} elseif ( is_string( $arg ) && substr( $arg, 0, strlen( self::_STATE_HEADER ) + 1 ) === self::_STATE_HEADER . '~' ) {
 			$this->set_state_string( $arg );
 		} elseif ( is_string( $arg ) ) {
