@@ -24,9 +24,13 @@ class bitari_Router #
 		if ( $arg === NULL ) {
 			/* do nothing */
 		} elseif ( is_string( $arg ) && substr( $arg, 0, strlen( self::_STATE_HEADER ) + 1 ) === self::_STATE_HEADER . '~' ) {
-			$this->set_state_string( $arg );
+			if ( $this->set_state_string( $arg ) !== true ) {
+				throw new Exception( 'Bad route-string in ' . __CLASS__ . ' constructor' );
+			}
 		} elseif ( is_string( $arg ) ) {
-			$this->load_state_file( $arg );
+			if ( $this->load_state_file( $arg ) !== true ) {
+				throw new Exception( 'Bad route-file in ' . __CLASS__ . ' constructor' );
+			}
 		} else {
 			throw new Exception( 'Bad argument in ' . __CLASS__ . ' constructor' );
 		}
