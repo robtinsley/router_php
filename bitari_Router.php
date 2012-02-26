@@ -127,13 +127,27 @@ class bitari_Router #
 		return true;
 	}
 
-	public function connect( $pattern, $handler, $extra = NULL )
+	public function connect( $request, $handler, $extra = NULL )
 	{
+		if ( preg_match( '#^(?:([A-Za-z]+)[ \t]+)?(/[^ \t\r\n]*)#', $request, $matches ) === 1 ) {
+			if ( $matches[1] === '' ) {
+				$method = 'ANY';
+			} else {
+				$method = strtoupper( $matches[1] );
+			}
+			$pattern = $matches[2];
+		} else {
+			return false;
+		}
+		unset( $matches );
+
 		$r = $this->parse( $pattern, $regex, $names );
 		if ( $r !== true ) {
 			return $r;
 		}
-		array_push( $this->routes, array( $handler, $regex, $names, $extra ) );
+
+		array_push( $this->routes, array( $handler, $method, $regex, $names, $extra ) );
+
 		return true;
 	}
 
@@ -172,19 +186,24 @@ class bitari_Router #
 	}
 */
 
-	public function route( $url, &$args, &$canonical = NULL )
+	// TODO: HEAD method should fall back to GET
+
+	public function lookup( $method, $url, &$args, &$canonical = NULL )
 	{
 		$numroutes = count( $this->routes );
 		for ( $i = 0; $i < $numroutes; $i++ ) {
-			if ( preg_match( $this->routes[$i][1], $url, $matches ) !== 1 ) {
+			if ( $this->routes[$i][0] !== 'ANY' && $this->routes[$i][0] !== $method ) {
+				continue;
+			}
+			if ( preg_match( $this->routes[$i][2], $url, $matches ) !== 1 ) {
 				continue;
 			}
 			$args = array();
-			foreach ( $this->routes[$i][2] as $j => $name ) {
+			foreach ( $this->routes[$i][3] as $j => $name ) {
 				$args[$name] = $matches[$j];
 			}
-			if ( is_array( $this->routes[$i][3] ) ) {
-				$args = array_merge( $args, $this->routes[$i][3] );
+			if ( is_array( $this->routes[$i][4] ) ) {
+				$args = array_merge( $args, $this->routes[$i][4] );
 			}
 			return $this->routes[$i][0];
 		}
@@ -195,7 +214,7 @@ class bitari_Router #
 
 		$url2 = preg_replace( '</+>', '/', "/$url/" );
 		if ( $url2 !== $url ) {
-			$handler = $this->route( $url2, $args );
+			$handler = $this->route( $method, $url2, $args );
 			if ( $handler !== false ) {
 				$canonical = $url2;
 				return $handler;
@@ -204,7 +223,7 @@ class bitari_Router #
 
 		$url3 = substr( $url2, 0, -1 );
 		if ( $url3 !== '' ) {
-			$handler = $this->route( $url3, $args );
+			$handler = $this->route( $method, $url3, $args );
 			if ( $handler !== false ) {
 				$canonical = $url3;
 				return $handler;
