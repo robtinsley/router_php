@@ -104,7 +104,7 @@ class bitari_Router #
 			}
 			switch ( $matches[2] ) {
 				case '':
-					$regex .= '([^/]*)';
+					$regex .= '(.*?)';
 					break;
 				case '=':
 					$regex .= '(' . preg_quote( $matches[3] ) . ')';
@@ -136,6 +136,19 @@ class bitari_Router #
 		array_push( $this->routes, array( $handler, $regex, $names, $extra ) );
 		return true;
 	}
+
+/*
+	public function connect_resource( $base, $name, $handler )
+	{
+		$this->connect( "GET{$base}{$name}",           $handler, array( '@resource' => $name, '@action' => 'index' ) );
+		$this->connect( "GET{$base}{$name}/new",       $handler, array( '@resource' => $name, '@action' => 'new' ) );
+		$this->connect( "POST{$base}{$name}/new",      $handler, array( '@resource' => $name, '@action' => 'create' ) );
+		$this->connect( "GET{$base}{$name}/<id>",      $handler, array( '@resource' => $name, '@action' => 'show' ) );
+		$this->connect( "GET{$base}{$name}/<id>/edit", $handler, array( '@resource' => $name, '@action' => 'edit' ) );
+		$this->connect( "PUT{$base}{$name}/<id>",      $handler, array( '@resource' => $name, '@action' => 'update' ) );
+		$this->connect( "DELETE{$base}{$name}/<id>",   $handler, array( '@resource' => $name, '@action' => 'destroy' ) );
+	}
+*/
 
 	public function route( $url, &$args, &$canonical = NULL )
 	{
