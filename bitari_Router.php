@@ -145,7 +145,7 @@ class bitari_Router #
 		$this->connect( "POST {$base}{$name}/new",      $handler, array( '@resource' => $name, '@action' => 'create' ) );
 		$this->connect( "GET {$base}{$name}/<id>",      $handler, array( '@resource' => $name, '@action' => 'show' ) );
 		$this->connect( "GET {$base}{$name}/<id>/edit", $handler, array( '@resource' => $name, '@action' => 'edit' ) );
-		$this->connect( "PUT {$base}{$name}/<id>",      $handler, array( '@resource' => $name, '@action' => 'update' ) );
+		$this->connect( "PATCH {$base}{$name}/<id>",      $handler, array( '@resource' => $name, '@action' => 'update' ) );
 		$this->connect( "DELETE {$base}{$name}/<id>",   $handler, array( '@resource' => $name, '@action' => 'destroy' ) );
 	}
 
