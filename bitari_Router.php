@@ -127,42 +127,7 @@ class bitari_Router #
 		return true;
 	}
 
-	public function connect( $request, $handler, $extra = NULL )
-	{
-		if ( preg_match( '#^(?:([A-Za-z]+)[ \t]+)?(/[^ \t\r\n]*)#', $request, $matches ) === 1 ) {
-			if ( $matches[1] === '' ) {
-				$method = 'ANY';
-			} else {
-				$method = strtoupper( $matches[1] );
-			}
-			$pattern = $matches[2];
-		} else {
-			return false;
-		}
-		unset( $matches );
-
-		$r = $this->parse( $pattern, $regex, $names );
-		if ( $r !== true ) {
-			return $r;
-		}
-
-		array_push( $this->routes, array( $handler, $method, $regex, $names, $extra ) );
-
-		return true;
-	}
-
 /*
-	public function connect_resource( $base, $name, $handler )
-	{
-		$this->connect( "GET {$base}{$name}",           $handler, array( '_resource' => $name, '_action' => 'index' ) );
-		$this->connect( "GET {$base}{$name}/new",       $handler, array( '_resource' => $name, '_action' => 'new' ) );
-		$this->connect( "POST {$base}{$name}/new",      $handler, array( '_resource' => $name, '_action' => 'create' ) );
-		$this->connect( "GET {$base}{$name}/<id>",      $handler, array( '_resource' => $name, '_action' => 'show' ) );
-		$this->connect( "GET {$base}{$name}/<id>/edit", $handler, array( '_resource' => $name, '_action' => 'edit' ) );
-		$this->connect( "PATCH {$base}{$name}/<id>",    $handler, array( '_resource' => $name, '_action' => 'update' ) );
-		$this->connect( "DELETE {$base}{$name}/<id>",   $handler, array( '_resource' => $name, '_action' => 'destroy' ) );
-	}
-
 	public function resource_handler( $args )
 	{
 		if ( !is_array( $args )
@@ -184,48 +149,100 @@ class bitari_Router #
 		unset( $args['_resource'], $args['_action'] );
 		return $class->$methodname( $args );
 	}
+
+	public function connect_resource( $base, $name, $handler )
+	{
+		$this->connect( "GET {$base}{$name}",           $handler, array( '_resource' => $name, '_action' => 'index' ) );
+		$this->connect( "GET {$base}{$name}/new",       $handler, array( '_resource' => $name, '_action' => 'new' ) );
+		$this->connect( "POST {$base}{$name}/new",      $handler, array( '_resource' => $name, '_action' => 'create' ) );
+		$this->connect( "GET {$base}{$name}/<id>",      $handler, array( '_resource' => $name, '_action' => 'show' ) );
+		$this->connect( "GET {$base}{$name}/<id>/edit", $handler, array( '_resource' => $name, '_action' => 'edit' ) );
+		$this->connect( "PATCH {$base}{$name}/<id>",    $handler, array( '_resource' => $name, '_action' => 'update' ) );
+		$this->connect( "DELETE {$base}{$name}/<id>",   $handler, array( '_resource' => $name, '_action' => 'destroy' ) );
+	}
 */
 
-	// TODO: HEAD method should fall back to GET
-
-	public function lookup( $method, $url, &$args, &$canonical = NULL )
+	public function connect( $request_pattern, $handler, $extra = NULL )
 	{
+		if ( preg_match( '#^(?:([A-Za-z]+)[ \t]+)?(/[^ \t\r\n]*)#', $request_pattern, $matches ) === 1 ) {
+			if ( $matches[1] === '' ) {
+				$method = 'ANY';
+			} else {
+				$method = strtoupper( $matches[1] );
+			}
+			$pattern = $matches[2];
+		} else {
+			return false;
+		}
+		unset( $matches );
+
+		$r = $this->parse( $pattern, $regex, $names );
+		if ( $r !== true ) {
+			return $r;
+		}
+
+		array_push( $this->routes, array( $handler, $method, $regex, $names, $extra ) );
+
+		return true;
+	}
+
+	public function lookup( $request, &$args, &$canonical = NULL )
+	{
+		if ( preg_match( '#^(?:([A-Za-z]+)[ \t]+)?(/[^ \t\r\n]*)#', $request_pattern, $matches ) === 1 ) {
+			if ( $matches[1] === '' ) {
+				$method = 'ANY';
+			} else {
+				$method = strtoupper( $matches[1] );
+			}
+			$uri = $matches[2];
+		} else {
+			return false;
+		}
+		unset( $matches );
+
 		$numroutes = count( $this->routes );
-		for ( $i = 0; $i < $numroutes; $i++ ) {
-			if ( $this->routes[$i][0] !== 'ANY' && $this->routes[$i][0] !== $method ) {
-				continue;
+
+		while ( true ) {
+			for ( $i = 0; $i < $numroutes; $i++ ) {
+				if ( $method !== 'ANY' && $method !== $this->routes[$i][0] && $this->routes[$i][0] !== 'ANY' ) {
+					continue;
+				}
+				if ( preg_match( $this->routes[$i][2], $uri, $matches ) !== 1 ) {
+					continue;
+				}
+				$args = array();
+				foreach ( $this->routes[$i][3] as $j => $name ) {
+					$args[$name] = $matches[$j];
+				}
+				if ( is_array( $this->routes[$i][4] ) ) {
+					$args = array_merge( $args, $this->routes[$i][4] );
+				}
+				return $this->routes[$i][0];
 			}
-			if ( preg_match( $this->routes[$i][2], $url, $matches ) !== 1 ) {
-				continue;
+			if ( $method !== 'HEAD' ) {
+				break;
 			}
-			$args = array();
-			foreach ( $this->routes[$i][3] as $j => $name ) {
-				$args[$name] = $matches[$j];
-			}
-			if ( is_array( $this->routes[$i][4] ) ) {
-				$args = array_merge( $args, $this->routes[$i][4] );
-			}
-			return $this->routes[$i][0];
+			$method = 'GET';
 		}
 
 		if ( func_num_args() < 3 ) {
 			return false;
 		}
 
-		$url2 = preg_replace( '</+>', '/', "/$url/" );
-		if ( $url2 !== $url ) {
-			$handler = $this->route( $method, $url2, $args );
+		$uri2 = preg_replace( '<//+>', '/', "/$uri/" );
+		if ( $uri2 !== $uri ) {
+			$handler = $this->route( $method, $uri2, $args );
 			if ( $handler !== false ) {
-				$canonical = $url2;
+				$canonical = $uri2;
 				return $handler;
 			}
 		}
 
-		$url3 = substr( $url2, 0, -1 );
-		if ( $url3 !== '' ) {
-			$handler = $this->route( $method, $url3, $args );
+		$uri3 = substr( $uri2, 0, -1 );
+		if ( $uri3 !== '' ) {
+			$handler = $this->route( $method, $uri3, $args );
 			if ( $handler !== false ) {
-				$canonical = $url3;
+				$canonical = $uri3;
 				return $handler;
 			}
 		}
