@@ -104,7 +104,7 @@ class bitari_Router #
 			}
 			switch ( $matches[2] ) {
 				case '':
-					$regex .= '([^/]*?)';
+					$regex .= '([^/?]*?)';
 					break;
 				case '=':
 					$regex .= '(' . preg_quote( $matches[3] ) . ')';
