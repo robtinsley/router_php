@@ -148,6 +148,28 @@ class bitari_Router #
 		$this->connect( "PUT {$base}{$name}/<id>",      $handler, array( '@resource' => $name, '@action' => 'update' ) );
 		$this->connect( "DELETE {$base}{$name}/<id>",   $handler, array( '@resource' => $name, '@action' => 'destroy' ) );
 	}
+
+	public function resource_handler( $args )
+	{
+		if ( !is_array( $args )
+		  || !array_key_exists( '@resource', $args )
+		  || !is_string( $args['@resource'] )
+		  || !array_key_exists( '@action', $args )
+		  || !is_string( $args['@action'] ) ) {
+		  	return false;
+		}
+		$classname = $args['@resource'] . 'Resource';
+		if ( !class_exists( $classname ) ) {
+			return false;
+		}
+		$class = new $classname;
+		$methodname = $args['@action'] . '_action';
+		if ( !is_callable( array( $class, $methodname ) ) ) {
+			return false;
+		}
+		unset( $args['@resource'], $args['@action'] );
+		return $class->$methodname( $args );
+	}
 */
 
 	public function route( $url, &$args, &$canonical = NULL )
