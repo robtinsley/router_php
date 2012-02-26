@@ -14,7 +14,7 @@ class bitari_Router #
 		'uuid'  => '([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})',
 		'ip4'   => '(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])',
 		'dns'   => '(([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}))', // won't match a TLD on its own, assumes TLD is only a-z
-		'email' => '(?i:[a-z0-9._%+-]+@([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}))', // some false negatives
+		'email' => '(?i:[a-z0-9._%+-]+_([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}))', // some false negatives
 	);
 
 	const _STATE_HEADER = 'bitari_Router#v1';
@@ -140,34 +140,34 @@ class bitari_Router #
 /*
 	public function connect_resource( $base, $name, $handler )
 	{
-		$this->connect( "GET {$base}{$name}",           $handler, array( '@resource' => $name, '@action' => 'index' ) );
-		$this->connect( "GET {$base}{$name}/new",       $handler, array( '@resource' => $name, '@action' => 'new' ) );
-		$this->connect( "POST {$base}{$name}/new",      $handler, array( '@resource' => $name, '@action' => 'create' ) );
-		$this->connect( "GET {$base}{$name}/<id>",      $handler, array( '@resource' => $name, '@action' => 'show' ) );
-		$this->connect( "GET {$base}{$name}/<id>/edit", $handler, array( '@resource' => $name, '@action' => 'edit' ) );
-		$this->connect( "PATCH {$base}{$name}/<id>",      $handler, array( '@resource' => $name, '@action' => 'update' ) );
-		$this->connect( "DELETE {$base}{$name}/<id>",   $handler, array( '@resource' => $name, '@action' => 'destroy' ) );
+		$this->connect( "GET {$base}{$name}",           $handler, array( '_resource' => $name, '_action' => 'index' ) );
+		$this->connect( "GET {$base}{$name}/new",       $handler, array( '_resource' => $name, '_action' => 'new' ) );
+		$this->connect( "POST {$base}{$name}/new",      $handler, array( '_resource' => $name, '_action' => 'create' ) );
+		$this->connect( "GET {$base}{$name}/<id>",      $handler, array( '_resource' => $name, '_action' => 'show' ) );
+		$this->connect( "GET {$base}{$name}/<id>/edit", $handler, array( '_resource' => $name, '_action' => 'edit' ) );
+		$this->connect( "PATCH {$base}{$name}/<id>",    $handler, array( '_resource' => $name, '_action' => 'update' ) );
+		$this->connect( "DELETE {$base}{$name}/<id>",   $handler, array( '_resource' => $name, '_action' => 'destroy' ) );
 	}
 
 	public function resource_handler( $args )
 	{
 		if ( !is_array( $args )
-		  || !array_key_exists( '@resource', $args )
-		  || !is_string( $args['@resource'] )
-		  || !array_key_exists( '@action', $args )
-		  || !is_string( $args['@action'] ) ) {
+		  || !array_key_exists( '_resource', $args )
+		  || !is_string( $args['_resource'] )
+		  || !array_key_exists( '_action', $args )
+		  || !is_string( $args['_action'] ) ) {
 		  	return false;
 		}
-		$classname = $args['@resource'] . 'Resource';
+		$classname = $args['_resource'] . 'Resource';
 		if ( !class_exists( $classname ) ) {
 			return false;
 		}
 		$class = new $classname;
-		$methodname = $args['@action'] . '_action';
+		$methodname = $args['_action'] . '_action';
 		if ( !is_callable( array( $class, $methodname ) ) ) {
 			return false;
 		}
-		unset( $args['@resource'], $args['@action'] );
+		unset( $args['_resource'], $args['_action'] );
 		return $class->$methodname( $args );
 	}
 */
